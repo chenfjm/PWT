@@ -2,17 +2,16 @@
 
 import os
 import sys
-HOME = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(HOME))
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(HOME)), 'conf'))
 from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
 
-import constants
+
+ENCDEC_AES_KEY = 'Qf8(^_^)2015#%&?Qf9(*_*)2099#%&?'
+
 
 def aes_encode(text):
     mode = AES.MODE_CBC
-    encryptor = AES.new(constants.ENCDEC_AES_KEY, mode, b'0100000000111000')
+    encryptor = AES.new(ENCDEC_AES_KEY, mode, b'0100000000111000')
     length = 16
     count = len(text)
     if count < length:
@@ -26,7 +25,7 @@ def aes_encode(text):
 
 def aes_decode(text):
     mode = AES.MODE_CBC
-    cryptor = AES.new(constants.ENCDEC_AES_KEY, mode, b'0100000000111000')
+    cryptor = AES.new(ENCDEC_AES_KEY, mode, b'0100000000111000')
     plain_text = cryptor.decrypt(a2b_hex(text))
     return plain_text.rstrip('\0')
 

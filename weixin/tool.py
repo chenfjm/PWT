@@ -7,8 +7,6 @@ import urllib2
 
 from redis.rediswrap import RedisCache
 
-import config
-import constants
 
 CACHE_TOKEN = 'weixin.access_token'
 CACHE_APPID = 'weixin.appid'

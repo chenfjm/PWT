@@ -2,8 +2,6 @@
 
 import os
 import sys
-HOME = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(HOME))
 import time
 import json
 import hashlib
@@ -13,13 +11,9 @@ import datetime
 import traceback
 import urllib, urllib2, random
 
-from pwt.web import template
 from pwt.web import core
 from pwt.base.qfresponse import *
 from pwt.base.dbpool import with_database
-from c.auth.bindwx import user_wxbind
-from lib import coupon
-import config
 
 from .sdk import WxRequest,WxTextResponse,WxArticle,WxNewsResponse
 
@@ -33,7 +27,7 @@ class Weixin(core.Handler):
     def GET(self):
         """微信服务器验证接口
         """
-        token = 'qianfang001'
+        token = ''
         data = self.req.input()
         if not data:
             self.write('')
@@ -81,21 +75,6 @@ class Weixin(core.Handler):
                         self.write(wxresp.as_xml())
                     elif ret and ret['type'] == 1:
                         pass
-                    meruser, userid, mobile = user_wxbind(self.db, merid, wxreq.FromUserName)
-                    coupon_id, coupon_nums = coupon.couponuser_rule(self.db, merid, 1, meruser=meruser, openid=wxreq.FromUserName)
-                    if coupon_id and coupon_nums:
-                        for l in range(coupon_nums):
-                            coupon_sn, amount_sharekey, title = coupon.couponuser_new(self.db, coupon_id, meruser)
-                        log.info('coupon_id=%s|meruser=%s' % (coupon_id, meruser))
-                        try:
-                            if coupon_sn and title:
-                                if isinstance(amount_sharekey, long):
-                                    message = u'优惠券来啦！恭喜您获得%s个面值%s元的%s' % (coupon_nums, float(amount) / 100.00, title)
-                                else:
-                                    message = u'优惠券来啦！恭喜您获得%s个%s, 点击以下链接地址领取: %s' % (coupon_nums, title, "http://%s/c/play/%s" % (self.req.host, amount_sharekey))
-                                tool.weixin_send_msg(self.db, merid, wxreq.FromUserName, message.encode('utf-8'))
-                        except:
-                            pass
                     return
                 except Exception:
                     log.warn(traceback.format_exc())

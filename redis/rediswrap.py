@@ -1,18 +1,17 @@
-# vim: set ts=4 et sw=4 sts=4 encoding=utf-8 :
+# vim: set ts=4 et sw=4 sts=4 fileencoding=utf-8 :
 
 import os
 import sys
-HOME = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(HOME))
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(HOME)), 'conf'))
 import redis
 
-import config
-import constants
+
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = 6379
 
 SYSTEM = {
-    'default': redis.Redis(host=config.REDIS_HOST, port=config.REDIS_PORT)
+    'default': redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 }
+
 
 def get_redis(system='default'):
     return SYSTEM[system]
