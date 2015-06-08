@@ -5,8 +5,11 @@ import json
 import urllib
 import urllib2
 
-from redis.rediswrap import RedisCache
+from qfcommon.base.dbpool import with_database
+from lib.rediswrap import RedisCache
 
+import config
+import constants
 
 CACHE_TOKEN = 'weixin.access_token'
 CACHE_APPID = 'weixin.appid'
@@ -154,6 +157,65 @@ def weixin_send_msg(db, merid, openid, msg):
         if isinstance(msg, unicode):
             msg = msg.encode('utf-8', 'ignore')
         req = urllib2.Request(url, '''{"touser":"%s","msgtype":"text","text":{"content":"%s"}}''' % (openid, msg))
+        rsp = urllib2.urlopen(req)
+        data = rsp.read()
+        rsp.close()
+    except:
+        return None
+
+    return data
+
+def weixin_send_news(db, merid, openid, news):
+    """微信发送图文消息
+    """
+    cache = RedisCache()
+
+    value = None
+    appid_key = '%s.%s' % (CACHE_APPID, merid)
+    try:
+        value = cache.get(appid_key)
+        if value:
+            value = json.loads(value)
+    except:
+        return None
+
+    if not value:
+        try:
+            ret = db.select_one('merchant_wxconfig', fields=('name', 'appid', 'appsecret'),
+                    where={'merid': merid, 'is_deleted': 0})
+            if not ret:
+                return None
+            appid  = ret['appid']
+            secret = ret['secret']
+        except:
+            return None
+    else:
+        appid  = value['appid']
+        secret = value['secret']
+
+    token = get_access_token(merid, appid, secret)
+    if not token:
+        return None
+
+    data = None
+    params = {'access_token': urllib.quote(token)}
+    url = 'https://api.weixin.qq.com/cgi-bin/message/custom/send?%s' % urllib.urlencode(params)
+    try:
+        param = {
+                "touser": openid,
+                "msgtype": "news",
+                "news": {
+                    "articles": [
+                        {
+                            "title": "Happy Day",
+                            "description": "Is Really A Happy Day",
+                            "url": "URL",
+                            "picurl": "PIC_URL"
+                            }
+                        ]
+                    }
+                }
+        req = urllib2.Request(url, json.dumps(param))
         rsp = urllib2.urlopen(req)
         data = rsp.read()
         rsp.close()
